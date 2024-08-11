@@ -4,19 +4,25 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 const {google} = require('googleapis');
 const app = express();
+app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: true }));
 const port = 3000;
 dotenv.config();
 
 
 
 //middleware to parse json
-app.use(express.json());
+//app.use(express.json());
 
 const sheet_id = process.env.SHEET_ID
 
+app.get('/', (req, res) => {
+  res.render("index")
+})
 
-app.get('/', async (req, res) => {
-
+app.post('/', async (req, res) => {
+  const { description, price } = req.body;
+  
   const auth = new google.auth.GoogleAuth({
     keyFile: "key.json",
     scopes: "https://www.googleapis.com/auth/spreadsheets"
@@ -37,23 +43,27 @@ app.get('/', async (req, res) => {
 
   //read rows from spreadsheet
   const getRows = await sheets.spreadsheets.values.get({
+    auth,
     spreadsheetId: sheet_id,
     range: "Sheet1"
   })
 
   //Write
   await sheets.spreadsheets.values.append({
+    auth,
     spreadsheetId: sheet_id,
-    range: "Sheet1!A2:C",
+    range: "Sheet1!A:B",
     valueInputOption: "USER_ENTERED",
     resource: {
       values: [
-        ["test", "input"]
+        [description, parseFloat(price)]
       ]
     }
   })
 
-  res.send(getRows.data)
+  //res.send("Successfully submitted!")
+  res.redirect('/?success=true');
+
 })
 
 
