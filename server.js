@@ -35,7 +35,25 @@ app.get('/', async (req, res) => {
     spreadsheetId: sheet_id,
   })
 
-  res.send(metadata.data)
+  //read rows from spreadsheet
+  const getRows = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheet_id,
+    range: "Sheet1"
+  })
+
+  //Write
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: sheet_id,
+    range: "Sheet1!A2:C",
+    valueInputOption: "USER_ENTERED",
+    resource: {
+      values: [
+        ["test", "input"]
+      ]
+    }
+  })
+
+  res.send(getRows.data)
 })
 
 
